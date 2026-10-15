@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
+    "corsheaders",
+    "django_filters",
+    "core",
 ]
 
 MIDDLEWARE = [
@@ -146,7 +150,12 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ),
-    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "300/min"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "300/min", "login": "5/min"},
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ),
 }
 
 if not DEBUG:
