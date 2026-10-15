@@ -1,0 +1,25 @@
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# node
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+staticfiles/
+db.sqlite3
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
