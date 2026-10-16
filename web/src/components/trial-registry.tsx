@@ -1,13 +1,12 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Search, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { StatusBadge } from "@/components/status-badge";
 import { TrialDetailSheet } from "@/components/trial-detail-sheet";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -20,7 +19,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
-import { useTrials } from "@/lib/queries";
 import {
   PHASES,
   PHASE_LABELS,
@@ -31,6 +29,20 @@ import {
   toSearchParams,
   type TrialFilters,
 } from "@/lib/trial-params";
+import { TrialFormDialog } from "@/components/trial-form-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ApiError, useDeleteTrial, useTrials, type Trial } from "@/lib/queries";
 
 const PAGE_SIZE = 20;
 const PHASE_OPTIONS = PHASES.map((p) => ({ value: p, label: PHASE_LABELS[p] }));
@@ -107,13 +119,17 @@ function FilterSelect({
   );
 }
 
-export function TrialRegistry() {
+export function TrialRegistry({ isStaff }: { isStaff: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
   const [q, setQ] = useState(filters.search);
   const [selected, setSelected] = useState<string | null>(null);
+  const [form, setForm] = useState<{ trial: Trial | null } | null>(null);
+  const [deleting, setDeleting] = useState<Trial | null>(null);
+  const remove = useDeleteTrial();
+  const columns = HEADERS.length + (isStaff ? 1 : 0);
   const { data, isPending, isError, isFetching, refetch } = useTrials(filters);
 
   const update = useCallback(
@@ -146,6 +162,25 @@ export function TrialRegistry() {
     update({ search: "", phase: "", status: "" });
   };
 
+  const confirmDelete = () => {
+    const target = deleting;
+    if (!target) return;
+    setDeleting(null);
+    remove.mutate(target.id, {
+      onSuccess: () => {
+        toast.success(`Deleted ${target.code}`);
+        // Deleting the last row of a page would leave an out-of-range page.
+        if (data && data.results.length === 1 && filters.page > 1) update({ page: filters.page - 1 });
+      },
+      onError: (err) =>
+        toast.error(
+          err instanceof ApiError && err.status === 403
+            ? "Admin access required."
+            : "Could not delete trial. Try again.",
+        ),
+    });
+  };
+
   return (
     <section className="space-y-4" aria-label="Trial registry">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -169,6 +204,11 @@ export function TrialRegistry() {
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
             <X aria-hidden /> Clear filters
+          </Button>
+        )}
+        {isStaff && (
+          <Button className="sm:ml-auto" onClick={() => setForm({ trial: null })}>
+            <Plus aria-hidden /> New trial
           </Button>
         )}
       </div>
@@ -204,6 +244,11 @@ export function TrialRegistry() {
                   <TableHead key={h.label}>{h.label}</TableHead>
                 ),
               )}
+              {isStaff && (
+                <TableHead className="w-24">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -215,12 +260,17 @@ export function TrialRegistry() {
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
+                  {isStaff && (
+                    <TableCell>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
 
             {data && data.results.length === 0 && !isError && (
               <TableRow>
-                <TableCell colSpan={HEADERS.length} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={columns} className="h-24 text-center text-muted-foreground">
                   No trials match your filters.
                 </TableCell>
               </TableRow>
@@ -245,6 +295,32 @@ export function TrialRegistry() {
                 </TableCell>
                 <TableCell>{formatDate(t.start_date)}</TableCell>
                 <TableCell className="text-right tabular-nums">{t.enrollment.toLocaleString("en-US")}</TableCell>
+                {isStaff && (
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button variant="ghost" size="icon" aria-label={`Edit ${t.code}`} onClick={() => setForm({ trial: t })} />
+                          }
+                        >
+                          <Pencil aria-hidden />
+                        </TooltipTrigger>
+                        <TooltipContent>Edit</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button variant="ghost" size="icon" aria-label={`Delete ${t.code}`} onClick={() => setDeleting(t)} />
+                          }
+                        >
+                          <Trash2 aria-hidden />
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -267,6 +343,25 @@ export function TrialRegistry() {
           </Button>
         </div>
       </div>
+
+      {form && <TrialFormDialog trial={form.trial} onClose={() => setForm(null)} />}
+
+      <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleting?.code}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the trial and its sites. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className={buttonVariants({ variant: "destructive" })} onClick={confirmDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <TrialDetailSheet code={selected} onClose={() => setSelected(null)} />
     </section>

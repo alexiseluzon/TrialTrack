@@ -27,7 +27,7 @@ export default async function RegistryPage() {
       </header>
       <Providers>
         <Suspense fallback={null}>
-          <TrialRegistry />
+          <TrialRegistry isStaff={me.is_staff} />
         </Suspense>
       </Providers>
     </div>
