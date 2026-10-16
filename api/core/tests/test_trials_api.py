@@ -65,3 +65,10 @@ def test_staff_create_and_validation(api, sponsor):
     assert api.post("/api/trials/", payload(sponsor), format="json").status_code == 201
     bad = api.post("/api/trials/", payload(sponsor, code="TT-101", enrollment=-5), format="json")
     assert bad.status_code == 400
+
+def test_me_requires_auth(api):
+    assert api.get("/api/me/").status_code == 401
+
+def test_me_returns_user_flags(api):
+    api.force_authenticate(make_user("boss", staff=True))
+    assert api.get("/api/me/").json() == {"username": "boss", "is_staff": True}

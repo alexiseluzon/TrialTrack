@@ -1,28 +1,35 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
+import { Providers } from "@/components/providers";
 import { SignOutButton } from "@/components/sign-out-button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrialRegistry } from "@/components/trial-registry";
 import { apiGet } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = { title: "Registry" };
 
-type TrialPage = { count: number };
+type Me = { username: string; is_staff: boolean };
 
-export default async function DashboardPage() {
-  const { count } = await apiGet<TrialPage>("/api/trials/?page_size=1");
+export default async function RegistryPage() {
+  const me = await apiGet<Me>("/api/me/");
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 p-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">TrialTrack</h1>
+    <div className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
+      <header className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">TrialTrack</h1>
+          <p className="text-sm text-muted-foreground">
+            Signed in as {me.username}
+            {me.is_staff ? " (admin)" : ""}
+          </p>
+        </div>
         <SignOutButton />
       </header>
-      <Card>
-        <CardHeader>
-          <CardDescription>Trials in registry</CardDescription>
-          <CardTitle className="text-4xl">{count}</CardTitle>
-        </CardHeader>
-      </Card>
+      <Providers>
+        <Suspense fallback={null}>
+          <TrialRegistry />
+        </Suspense>
+      </Providers>
     </div>
   );
 }

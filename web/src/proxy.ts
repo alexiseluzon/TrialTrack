@@ -39,14 +39,19 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (!access && !isPublic) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = "";
-    const res = NextResponse.redirect(url);
-    res.cookies.delete(REFRESH_COOKIE);
-    return res;
-  }
+    if (!access && !isPublic) {
+      if (pathname.startsWith("/api/")) {
+        const res = NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+        res.cookies.delete(REFRESH_COOKIE);
+        return res;
+      }
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = "";
+      const res = NextResponse.redirect(url);
+      res.cookies.delete(REFRESH_COOKIE);
+      return res;
+    }
 
   if (access && isPublic) {
     const url = request.nextUrl.clone();

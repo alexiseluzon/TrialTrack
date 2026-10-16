@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .filters import TrialFilter
 from .models import Sponsor, Trial
@@ -46,3 +48,8 @@ class LoginView(TokenObtainPairView):
 class RefreshView(TokenRefreshView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "login"
+
+@api_view(["GET"])
+def me(request):
+    user = request.user
+    return Response({"username": user.get_username(), "is_staff": user.is_staff})

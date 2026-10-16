@@ -5,13 +5,14 @@ from django.conf import settings
 from core.graphql_api import JWTGraphQLView, schema
 
 from core.views import health
-from core.viewsets import LoginView, RefreshView, SponsorViewSet, TrialViewSet
+from core.viewsets import LoginView, RefreshView, SponsorViewSet, TrialViewSet, me
 
 router = SimpleRouter()
 router.register("trials", TrialViewSet, basename="trial")
 router.register("sponsors", SponsorViewSet, basename="sponsor")
 
 urlpatterns = [
+    path("api/me/", me),
     path("admin/", admin.site.urls),
     path("health/", health),
     path("api/auth/token/", LoginView.as_view()),
