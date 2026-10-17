@@ -1,40 +1,20 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { z } from "zod";
 
+import {
+  graphqlTrialSchema,
+  parseApi,
+  sponsorPageSchema,
+  trialPageSchema,
+  type Sponsor,
+  type Trial,
+  type TrialDetail,
+  type TrialPage,
+} from "./api-schemas";
 import { toSearchParams, type TrialFilters } from "./trial-params";
 import type { TrialPayload } from "./trial-schema";
 
-export type Trial = {
-  id: number;
-  code: string;
-  title: string;
-  condition: string;
-  phase: string;
-  status: string;
-  sponsor: number;
-  sponsor_name: string;
-  start_date: string;
-  enrollment: number;
-};
-
-export type TrialPage = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Trial[];
-};
-
-export type TrialDetail = {
-  id: number;
-  code: string;
-  title: string;
-  condition: string;
-  phase: string;
-  status: string;
-  startDate: string;
-  enrollment: number;
-  sponsor: { name: string; country: string };
-  sites: { id: number; name: string; city: string; country: string }[];
-};
+export type { Sponsor, Trial, TrialDetail, TrialPage };
 
 const TRIAL_QUERY = `query Trial($code: String!) {
   trial(code: $code) {
@@ -44,21 +24,27 @@ const TRIAL_QUERY = `query Trial($code: String!) {
   }
 }`;
 
-async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
+// Full page load on purpose: /session/expired is a route handler that clears cookies, not a client route.
+function endSession() {
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.assign("/session/expired");
+}
+
+async function getJson<T>(url: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (res.status === 401) {
-    window.location.assign("/session/expired");
+    endSession();
     throw new Error("Session expired");
   }
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
-  return (await res.json()) as T;
+  return parseApi(schema, await res.json(), url.split("?")[0]);
 }
 
 export function useTrials(filters: TrialFilters) {
   const qs = toSearchParams(filters).toString();
   return useQuery({
     queryKey: ["trials", qs],
-    queryFn: ({ signal }) => getJson<TrialPage>(`/api/trials${qs ? `?${qs}` : ""}`, { signal }),
+    queryFn: ({ signal }) => getJson(`/api/trials${qs ? `?${qs}` : ""}`, trialPageSchema, { signal }),
     placeholderData: keepPreviousData,
   });
 }
@@ -68,10 +54,7 @@ export function useTrialDetail(code: string | null) {
     queryKey: ["trial", code],
     enabled: code !== null,
     queryFn: async ({ signal }) => {
-      const res = await getJson<{
-        data?: { trial: TrialDetail | null };
-        errors?: { message: string }[];
-      }>("/api/graphql", {
+      const res = await getJson("/api/graphql", graphqlTrialSchema, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: TRIAL_QUERY, variables: { code } }),
@@ -84,14 +67,12 @@ export function useTrialDetail(code: string | null) {
   });
 }
 
-export type Sponsor = { id: number; name: string; country: string };
-
 export function useSponsors() {
   return useQuery({
     queryKey: ["sponsors"],
     staleTime: 5 * 60_000,
     queryFn: async ({ signal }) =>
-      (await getJson<{ results: Sponsor[] }>("/api/sponsors", { signal })).results,
+      (await getJson("/api/sponsors", sponsorPageSchema, { signal })).results,
   });
 }
 
@@ -115,21 +96,21 @@ function toFieldErrors(body: unknown): Record<string, string[]> {
   return out;
 }
 
-async function mutate<T>(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown): Promise<T | null> {
+// Success bodies are not used by the UI, so only errors are parsed.
+async function mutate(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown): Promise<void> {
   const res = await fetch(url, {
     method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) {
-    window.location.assign("/session/expired");
+    endSession();
     throw new ApiError(401);
   }
   if (!res.ok) {
     const parsed = await res.json().catch(() => null);
     throw new ApiError(res.status, toFieldErrors(parsed));
   }
-  return res.status === 204 ? null : ((await res.json()) as T);
 }
 
 function useInvalidateTrials() {
@@ -145,7 +126,7 @@ export function useSaveTrial() {
   const invalidate = useInvalidateTrials();
   return useMutation({
     mutationFn: ({ id, payload }: { id?: number; payload: TrialPayload }) =>
-      mutate<Trial>(id ? `/api/trials/${id}` : "/api/trials", id ? "PATCH" : "POST", payload),
+      mutate(id ? `/api/trials/${id}` : "/api/trials", id ? "PATCH" : "POST", payload),
     onSuccess: invalidate,
   });
 }
@@ -153,7 +134,7 @@ export function useSaveTrial() {
 export function useDeleteTrial() {
   const invalidate = useInvalidateTrials();
   return useMutation({
-    mutationFn: (id: number) => mutate<null>(`/api/trials/${id}`, "DELETE"),
+    mutationFn: (id: number) => mutate(`/api/trials/${id}`, "DELETE"),
     onSuccess: invalidate,
   });
 }

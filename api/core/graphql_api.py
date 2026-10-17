@@ -110,12 +110,12 @@ class Query:
 
 
 extensions = [
-    QueryDepthLimiter(max_depth=5),
-    MaxAliasesLimiter(max_alias_count=15),
-    MaxTokensLimiter(max_token_count=1000),
+    lambda: QueryDepthLimiter(max_depth=5),
+    lambda: MaxAliasesLimiter(max_alias_count=15),
+    lambda: MaxTokensLimiter(max_token_count=1000),
 ]
 if not settings.DEBUG:
-    extensions.append(AddValidationRules([NoSchemaIntrospectionCustomRule]))
+    extensions.append(lambda: AddValidationRules([NoSchemaIntrospectionCustomRule]))
 
 schema = strawberry.Schema(query=Query, extensions=extensions)
 
