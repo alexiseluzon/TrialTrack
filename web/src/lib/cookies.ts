@@ -4,7 +4,7 @@ export const ACCESS_COOKIE = "tt_access";
 export const REFRESH_COOKIE = "tt_refresh";
 
 const REFRESH_MAX_AGE = 60 * 60 * 24; // matches simplejwt's 1-day default
-const isProd = () => process.env.NODE_ENV === "production";
+const isProd = () => process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "0";
 
 const base = (secure: boolean) => ({
   httpOnly: true as const,

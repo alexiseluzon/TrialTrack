@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "tt_access",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkyMTY0NTkwLCJpYXQiOjE3OTIxNjQyOTAsImp0aSI6ImQ1YzQzZjBmYzg4NDQ0ODhhZmU2MDY2NTA3MGQwMzQ1IiwidXNlcl9pZCI6IjIifQ.Id4VEroG2-AceiUHiwu4CadsFI9hmsiPFutvo6ZTw44",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1792164589.992909,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tt_refresh",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc5MjI1MDY5MCwiaWF0IjoxNzkyMTY0MjkwLCJqdGkiOiJiMjI5M2Y0ZDU2MGU0MWE0YTkxMzc0YzZjNTkwMWVhMiIsInVzZXJfaWQiOiIyIn0.oMyW6-cteSzvtVvKzSSxoeo6HSVKtyS75bTIlINiEZc",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1792250690.993306,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}
