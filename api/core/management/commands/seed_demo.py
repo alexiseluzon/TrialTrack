@@ -7,6 +7,9 @@ from django.core.management.base import BaseCommand, CommandError
 
 from core.models import Site, Sponsor, Trial
 
+from django.contrib.auth.models import Group
+from core.permissions import DEMO_GROUP
+
 SPONSORS = [("Northwind Pharma", "USA"), ("Helix Biosciences", "UK"),
             ("Aster Therapeutics", "Germany"), ("Meridian Health", "Singapore"),
             ("Lumen Labs", "Canada"), ("Cobalt Medical", "Japan")]
@@ -58,6 +61,7 @@ class Command(BaseCommand):
                 )
 
         admin_password = os.getenv("DEMO_ADMIN_PASSWORD") or password
+        demo_group, _ = Group.objects.get_or_create(name=DEMO_GROUP)
         User = get_user_model()
         for username, staff, pw in (
             ("demo", False, password),
@@ -67,4 +71,8 @@ class Command(BaseCommand):
             user.is_staff = staff
             user.set_password(pw)
             user.save()
+            if username == "demo_admin":
+                user.groups.add(demo_group)
+            else:
+                user.groups.remove(demo_group)
         self.stdout.write(self.style.SUCCESS("Seeded."))

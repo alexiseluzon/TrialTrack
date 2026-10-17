@@ -3,8 +3,11 @@
 A clinical trial registry demo: a data-dense, accessible Next.js front end over a Django API.
 **Fake data only. Not for real patient or medical use.**
 
-**Live demo:** https://YOUR-APP.vercel.app (read-only login: `demo` / `PASTE_DEMO_PASSWORD`)
-The free API sleeps when idle, so the first sign-in can take up to a minute.
+## Live demo
+- App: https://trialtrack-web.vercel.app
+- On the sign-in page, click **Try as member** (read-only) or **Try as admin**. No account needed.
+- The demo admin can create trials (max 25) and edit or delete only the ones it created; seeded data is read-only.
+- First load may take up to a minute while the free API wakes up.
 
 ![Registry](docs/screenshots/registry.png)
 

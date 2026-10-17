@@ -76,6 +76,11 @@ export function TrialFormDialog({ trial, onClose }: { trial: Trial | null; onClo
         },
         onError: (err) => {
           if (err instanceof ApiError && err.status === 400) {
+            const general = err.fields.non_field_errors?.[0];
+              if (general) {
+                toast.error(general);
+                return;
+              }
             let mapped = false;
             for (const [field, messages] of Object.entries(err.fields)) {
               if (field in values) {

@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 
 class Sponsor(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -10,7 +10,6 @@ class Sponsor(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Trial(models.Model):
     class Phase(models.TextChoices):
@@ -34,13 +33,15 @@ class Trial(models.Model):
     start_date = models.DateField()
     enrollment = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     class Meta:
         ordering = ["-start_date", "id"]
 
     def __str__(self):
         return self.code
-
 
 class Site(models.Model):
     trial = models.ForeignKey(Trial, on_delete=models.CASCADE, related_name="sites")

@@ -35,3 +35,20 @@ test("login page has no WCAG 2.1 AA violations", async ({ page }) => {
     .analyze();
   expect(results.violations).toEqual([]);
 });
+
+test("Try as member signs in with read-only access", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Try as member" }).click();
+  await expect(page.getByText("Signed in as demo", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "New trial" })).toHaveCount(0);
+});
+
+test("Try as admin cannot edit or delete seeded trials", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Try as admin" }).click();
+  await expect(page.getByText("Signed in as demo_admin (admin)")).toBeVisible();
+  await expect(page.getByRole("button", { name: "New trial" })).toBeVisible();
+  await page.getByLabel("Search trials").fill("TT-");
+  await expect(page.getByRole("button", { name: /^Edit / })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Delete / })).toHaveCount(0);
+});

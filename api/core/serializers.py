@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Site, Sponsor, Trial
+from .permissions import can_modify
 
 
 class SponsorSerializer(serializers.ModelSerializer):
@@ -17,12 +18,17 @@ class SiteSerializer(serializers.ModelSerializer):
 
 class TrialListSerializer(serializers.ModelSerializer):
     sponsor_name = serializers.CharField(source="sponsor.name", read_only=True)
+    can_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Trial
         fields = ["id", "code", "title", "condition", "phase", "status",
-                  "sponsor", "sponsor_name", "start_date", "enrollment"]
+                  "sponsor", "sponsor_name", "start_date", "enrollment", "can_edit"]
         extra_kwargs = {"enrollment": {"max_value": 1_000_000}}
+
+    def get_can_edit(self, obj):
+        request = self.context.get("request")
+        return bool(request and can_modify(request.user, obj))
 
 
 class TrialDetailSerializer(TrialListSerializer):

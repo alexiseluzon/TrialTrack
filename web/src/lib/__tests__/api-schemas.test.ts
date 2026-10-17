@@ -105,3 +105,13 @@ describe("parseApi", () => {
     spy.mockRestore();
   });
 });
+
+describe("optional flags", () => {
+  it("defaults can_edit to false when the API omits it", () => {
+    expect(trialPageSchema.parse(page).results[0].can_edit).toBe(false);
+  });
+
+  it("defaults is_demo to false", () => {
+    expect(meSchema.parse({ username: "demo", is_staff: false }).is_demo).toBe(false);
+  });
+});

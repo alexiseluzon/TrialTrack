@@ -297,28 +297,32 @@ export function TrialRegistry({ isStaff }: { isStaff: boolean }) {
                 <TableCell className="text-right tabular-nums">{t.enrollment.toLocaleString("en-US")}</TableCell>
                 {isStaff && (
                   <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Button variant="ghost" size="icon" aria-label={`Edit ${t.code}`} onClick={() => setForm({ trial: t })} />
-                          }
-                        >
-                          <Pencil aria-hidden />
-                        </TooltipTrigger>
-                        <TooltipContent>Edit</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Button variant="ghost" size="icon" aria-label={`Delete ${t.code}`} onClick={() => setDeleting(t)} />
-                          }
-                        >
-                          <Trash2 aria-hidden />
-                        </TooltipTrigger>
-                        <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
-                    </div>
+                    {t.can_edit ? (
+                      <div className="flex justify-end gap-1">
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Button variant="ghost" size="icon" aria-label={`Edit ${t.code}`} onClick={() => setForm({ trial: t })} />
+                            }
+                          >
+                            <Pencil aria-hidden />
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Button variant="ghost" size="icon" aria-label={`Delete ${t.code}`} onClick={() => setDeleting(t)} />
+                            }
+                          >
+                            <Trash2 aria-hidden />
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    ) : (
+                      <span className="block text-right text-xs text-muted-foreground">Read-only</span>
+                    )}
                   </TableCell>
                 )}
               </TableRow>

@@ -66,7 +66,12 @@ export default defineConfig({
       url: `${WEB}/login`,
       timeout: 240_000,
       reuseExistingServer: false,
-      env: { API_URL: API, COOKIE_SECURE: "0" },
+      env: {
+        API_URL: API,
+        COOKIE_SECURE: "0",
+        DEMO_MEMBER_PASSWORD: PASSWORD,
+        DEMO_ADMIN_PASSWORD: PASSWORD,
+      },
     },
   ],
 });

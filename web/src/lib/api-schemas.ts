@@ -34,6 +34,7 @@ export const trialSchema = z.object({
   sponsor_name: z.string(),
   start_date: z.string(),
   enrollment: z.number().int().nonnegative(),
+  can_edit: z.boolean().default(false),
 });
 
 export const trialPageSchema = z.object({
@@ -76,7 +77,11 @@ export const graphqlTrialSchema = z.object({
   errors: z.array(z.object({ message: z.string() })).optional(),
 });
 
-export const meSchema = z.object({ username: z.string(), is_staff: z.boolean() });
+export const meSchema = z.object({
+  username: z.string(),
+  is_staff: z.boolean(),
+  is_demo: z.boolean().default(false),
+});
 
 export const tokenPairSchema = z.object({
   access: z.string().min(1),

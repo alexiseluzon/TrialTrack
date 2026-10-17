@@ -55,3 +55,20 @@ test("duplicate code shows a server validation error", async ({ page }) => {
   await expect(dialog.getByText(/already exists/i)).toBeVisible();
   await dialog.getByRole("button", { name: "Cancel" }).click();
 });
+
+test("demo admin cannot modify seeded trials through the API", async ({ request }) => {
+  const list = await request.get("/api/trials?search=TT-00001");
+  const seeded = (await list.json()).results[0];
+  const body = {
+    code: seeded.code,
+    title: "Hacked",
+    condition: seeded.condition,
+    phase: seeded.phase,
+    status: seeded.status,
+    sponsor: seeded.sponsor,
+    start_date: seeded.start_date,
+    enrollment: seeded.enrollment,
+  };
+  expect((await request.patch(`/api/trials/${seeded.id}`, { data: body })).status()).toBe(403);
+  expect((await request.delete(`/api/trials/${seeded.id}`)).status()).toBe(403);
+});

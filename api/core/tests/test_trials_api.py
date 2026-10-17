@@ -62,7 +62,7 @@ def test_me_requires_auth(api):
 
 def test_me_returns_user_flags(api):
     api.force_authenticate(make_user("boss", staff=True))
-    assert api.get("/api/me/").json() == {"username": "boss", "is_staff": True}
+    assert api.get("/api/me/").json() == {"username": "boss", "is_staff": True, "is_demo": False}
 
 def test_staff_update_and_delete(api, sponsor):
     trial = make_trial(sponsor)

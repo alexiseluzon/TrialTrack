@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { loginAction } from "@/app/actions";
+import { demoLoginAction, loginAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,6 +44,18 @@ export function LoginForm() {
         return;
       }
       toast.success("Signed in");
+      router.replace("/");
+      router.refresh();
+    });
+
+  const demoLogin = (role: "member" | "admin") =>
+    startTransition(async () => {
+      const result = await demoLoginAction(role);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(`Demo ${role} session started`);
       router.replace("/");
       router.refresh();
     });
@@ -121,6 +133,27 @@ export function LoginForm() {
           </p>
         </CardFooter>
       </form>
+      <CardFooter className="flex-col items-stretch gap-3 border-t">
+        <p className="text-center text-sm text-muted-foreground">No account? Try the demo.</p>
+        <div className="grid grid-cols-2 gap-2">
+          <Tooltip>
+            <TooltipTrigger
+              render={<Button type="button" variant="outline" disabled={pending} onClick={() => demoLogin("member")} />}
+            >
+              Try as member
+            </TooltipTrigger>
+            <TooltipContent>Read-only access to the registry</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={<Button type="button" variant="outline" disabled={pending} onClick={() => demoLogin("admin")} />}
+            >
+              Try as admin
+            </TooltipTrigger>
+            <TooltipContent>Create trials; edit and delete only your own</TooltipContent>
+          </Tooltip>
+        </div>
+      </CardFooter>
     </Card>
   );
 }
