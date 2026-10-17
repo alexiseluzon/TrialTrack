@@ -6,12 +6,14 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { TrialRegistry } from "@/components/trial-registry";
 import { apiGet } from "@/lib/api";
 
+import { meSchema } from "@/lib/api-schemas";
+
 export const metadata: Metadata = { title: "Registry" };
 
-type Me = { username: string; is_staff: boolean };
+
 
 export default async function RegistryPage() {
-  const me = await apiGet<Me>("/api/me/");
+  const me = await apiGet("/api/me/", meSchema);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">

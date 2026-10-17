@@ -3,6 +3,8 @@
 import { loginSchema, type LoginInput } from "@/lib/schemas";
 import { clearSession, setSession } from "@/lib/session";
 
+import { tokenPairSchema } from "@/lib/api-schemas";
+
 type Result = { ok: true } | { ok: false; error: string };
 
 export async function loginAction(input: LoginInput): Promise<Result> {
@@ -28,8 +30,14 @@ export async function loginAction(input: LoginInput): Promise<Result> {
   if (res.status >= 500) return { ok: false, error: "API error. Try again shortly." };
   if (!res.ok) return { ok: false, error: "Invalid username or password." };
 
-  const { access, refresh } = (await res.json()) as { access: string; refresh: string };
-  await setSession(access, refresh);
+  let tokens;
+  try {
+    tokens = tokenPairSchema.parse(await res.json());
+  } catch {
+    return { ok: false, error: "API error. Try again shortly." };
+  }
+
+  await setSession(tokens.access, tokens.refresh);
   return { ok: true };
 }
 

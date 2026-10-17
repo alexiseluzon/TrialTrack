@@ -18,6 +18,7 @@ The free API sleeps when idle, so the first sign-in can take up to a minute.
 - Next.js App Router with Server Components, server actions and `proxy.ts` route protection
 - React Hook Form + Zod validation on the client and again on the server
 - Responsive, keyboard-friendly UI with skeletons, toasts, tooltips and confirmation dialogs
+- API responses validated at runtime with Zod (REST and GraphQL), with types inferred from the schemas
 
 ## Architecture
 ```mermaid
@@ -81,7 +82,6 @@ git config core.hooksPath .githooks
 ```
 
 ## Known limitations
-- API responses are type-asserted, not validated at runtime
 - Logout clears cookies but does not revoke the refresh token
 - The login rate limit is keyed by IP, which is shared behind the Vercel proxy
 - No audit logging; a real regulated system would need it
@@ -91,17 +91,3 @@ git config core.hooksPath .githooks
 Provided "as is" without warranty of any kind. The author is not liable for any damages arising from its use.
 
 © 2026 Alexis E. Luzon. All rights reserved.
-
-<!--
-find: python -m pytest -q 2>$null; cd api; python -m pytest -q; cd ..
-find: Typed API contracts: responses are type-asserted, not runtime-validated. A quick fix is Zod-parsing the API responses (I can do this next).
-Render (API)
-chore: add production config for Render and Vercel deployment
-
-D:\Projects\TrialTrack\web\src\lib\queries.ts
-   50:5  warning  Do not use `window.location.assign()` to navigate to internal Next.js pages. Use `redirect()` in the render phase, or `useRouter().push()` in Client Components' event handlers instead. See: https://nextjs.org/docs/messages/no-location-assign-relative-destination  @next/next/no-location-assign-relative-destination
-  125:5  warning  Do not use `window.location.assign()` to navigate to internal Next.js pages. Use `redirect()` in the render phase, or `useRouter().push()` in Client Components' event handlers instead. See: https://nextjs.org/docs/messages/no-location-assign-relative-destination  @next/next/no-location-assign-relative-destination
-
-✖ 2 problems (0 errors, 2 warnings)
--->
-

@@ -6,6 +6,8 @@ import {
   accessCookieOptions,
 } from "./lib/cookies";
 
+import { refreshResponseSchema } from "./lib/api-schemas";
+
 const PUBLIC_PATHS = ["/login"];
 
 export async function proxy(request: NextRequest) {
@@ -27,9 +29,9 @@ export async function proxy(request: NextRequest) {
         signal: AbortSignal.timeout(30_000),
       });
       if (res.ok) {
-        const data = (await res.json()) as { access?: string };
-        if (data.access) {
-          refreshed = data.access;
+        const parsed = refreshResponseSchema.safeParse(await res.json());
+        if (parsed.success) {
+          refreshed = parsed.data.access;
           access = refreshed;
           request.cookies.set(ACCESS_COOKIE, refreshed); // visible to Server Components this request
         }

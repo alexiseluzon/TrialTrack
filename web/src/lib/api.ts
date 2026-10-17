@@ -3,7 +3,11 @@ import { redirect } from "next/navigation";
 
 import { getAccessToken } from "./session";
 
-export async function apiGet<T>(path: string): Promise<T> {
+import type { z } from "zod";
+
+import { parseApi } from "./api-schemas";
+
+export async function apiGet<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   const token = await getAccessToken();
   if (!token) redirect("/session/expired");
 
@@ -20,5 +24,5 @@ export async function apiGet<T>(path: string): Promise<T> {
 
   if (res.status === 401) redirect("/session/expired");
   if (!res.ok) throw new Error(`API error ${res.status}`);
-  return (await res.json()) as T;
+  return parseApi(schema, await res.json(), path.split("?")[0]);
 }
