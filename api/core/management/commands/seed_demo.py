@@ -57,10 +57,14 @@ class Command(BaseCommand):
                     for city, country in (rng.choice(CITIES) for _ in range(rng.randint(1, 4)))
                 )
 
+        admin_password = os.getenv("DEMO_ADMIN_PASSWORD") or password
         User = get_user_model()
-        for username, staff in (("demo", False), ("demo_admin", True)):
+        for username, staff, pw in (
+            ("demo", False, password),
+            ("demo_admin", True, admin_password),
+        ):
             user, _ = User.objects.get_or_create(username=username)
             user.is_staff = staff
-            user.set_password(password)
+            user.set_password(pw)
             user.save()
         self.stdout.write(self.style.SUCCESS("Seeded."))
